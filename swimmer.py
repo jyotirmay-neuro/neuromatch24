@@ -16,6 +16,7 @@
 """Procedurally generated Swimmer domain."""
 import collections
 import os
+from pathlib import Path
 
 from dm_control import mujoco
 from dm_control.rl import control
@@ -88,7 +89,7 @@ def _make_model(n_bodies):
   if n_bodies < 3:
     raise ValueError('At least 3 bodies required. Received {}'.format(n_bodies))
   
-  filename = resources.GetResource(os.path.join(os.getcwd(), 'swimmer.xml'))
+  filename = resources.GetResource(Path(__file__).parent / 'swimmer.xml')
   mjcf = etree.fromstring(filename)
   print(mjcf.find("./option"))
   head_body = mjcf.find('./worldbody/body')
