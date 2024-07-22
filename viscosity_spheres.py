@@ -31,6 +31,28 @@ class ViscositySpheres:
 
 
     """
+
+    @staticmethod
+    def random_init(
+        spatial_density: float = 6.,
+        size_mean: float = 0.15,
+        size_sigma: float =0.3,
+        coef_mean: float = 0.0,
+        coef_sigma: float = 1.0,
+    ):
+        # spacial_dencity - how many spheres per 1^2 area
+        # scene 10x10 (?)
+
+        spheres_n = int(spatial_density*100)
+
+        x = np.random.uniform(-10, 10, spheres_n)
+        y = np.random.uniform(-10, 10, spheres_n)
+        z = np.ones((spheres_n,))*0.06
+        coefs = np.random.normal(coef_mean, coef_sigma, spheres_n)
+        sizes = np.abs(np.random.normal(size_mean, size_sigma, spheres_n))
+        spheres = [ VscSphereP(c, (x,y,z), s) for c, x, y, z, s in zip(coefs, x, y, z, sizes) ]
+        return ViscositySpheres(spheres)
+
     def __init__(self, spheres: list[VscSphereP]):
         self._spheres = spheres
 
@@ -49,7 +71,7 @@ class ViscositySpheres:
 
         max_coeff = max([ abs(s.coeff) for s in self._spheres ] + [1.])
         for i, s in enumerate(self._spheres):
-            _a = abs(s.coeff) / max_coeff
+            _a = abs(s.coeff) / (max_coeff*2)
             rgba = f"1 0 0 {_a}" if s.coeff < 0 else f"0 1 0 {_a}"
             name = f'viscosity_ball_{i}'
             pos = f"{s.pos[0]} {s.pos[1]} {s.pos[2]}"
@@ -77,4 +99,4 @@ class ViscositySpheres:
                     ]  # [:3] for linar vel/forces only
                     viscous_force = -s.coeff * linear_v
                     physics.named.data.xfrc_applied[body_name][:3] += viscous_force
-                    # physics.named.data.xfrc_applied[body_name][:3] += 0.0005
+                    # physics.named.data.xfrc_applied[body_name][:3] += 0.001
