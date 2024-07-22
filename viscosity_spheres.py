@@ -97,6 +97,6 @@ class ViscositySpheres:
                     linear_v = physics.named.data.cvel[body_name][
                         :3
                     ]  # [:3] for linar vel/forces only
-                    viscous_force = -s.coeff*s.size/(d_body +0.0001)  * linear_v
+                    viscous_force = -s.coeff*s.size/(d_body + 0.000001)  * linear_v
                     physics.named.data.xfrc_applied[body_name][:3] += viscous_force
                     # physics.named.data.xfrc_applied[body_name][:3] += 0.001
