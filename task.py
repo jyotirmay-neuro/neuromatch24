@@ -6,7 +6,7 @@ from dm_control import suite
 
 import numpy as np
 
-from .viscosity_spheres import ViscositySpheres
+from viscosity_spheres import ViscositySpheres
 
 
 _SWIM_SPEED = 0.1
