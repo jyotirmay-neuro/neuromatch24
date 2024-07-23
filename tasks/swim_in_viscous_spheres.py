@@ -16,7 +16,12 @@ class Swim(swimmer.Swimmer):
 
     def __init__(self,
         desired_speed=_SWIM_SPEED,
-        with_target = True,
+        spatial_density = 6.,
+        size_mean = 0.15,
+        size_sigma = 0.3,
+        coef_mean = 0.0,
+        coef_sigma = 1.0,
+        with_target = False,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -25,11 +30,11 @@ class Swim(swimmer.Swimmer):
         self._target_distance = 2.0
 
         self.viscosity_spheres = ViscositySpheres.random_init(
-            spatial_density = 6.,
-            size_mean = 0.15,
-            size_sigma = 0.3,
-            coef_mean = 0.0,
-            coef_sigma = 1.0,
+            spatial_density = spatial_density,
+            size_mean = size_mean,
+            size_sigma = size_sigma,
+            coef_mean = coef_mean,
+            coef_sigma = coef_sigma,
         )
         self.with_target = with_target
 
@@ -48,9 +53,9 @@ class Swim(swimmer.Swimmer):
             physics.named.model.geom_pos["target"][:3] = target_pos
         else:
             # Hide target by setting alpha to 0.
-            physics.named.model.mat_rgba["target", "a"] = 1
-            physics.named.model.mat_rgba["target_default", "a"] = 1
-            physics.named.model.mat_rgba["target_highlight", "a"] = 1
+            physics.named.model.mat_rgba["target", "a"] = 0
+            physics.named.model.mat_rgba["target_default", "a"] = 0
+            physics.named.model.mat_rgba["target_highlight", "a"] = 0
 
         
 
@@ -59,7 +64,7 @@ class Swim(swimmer.Swimmer):
         obs = collections.OrderedDict()
         obs["joints"] = physics.joints()
         obs["body_velocities"] = physics.body_velocities()
-        obs["d"] = physics.nose_to_target_dist()
+        # obs["d"] = physics.nose_to_target_dist()
         return obs
 
     def get_reward(self, physics):
@@ -78,7 +83,7 @@ class Swim(swimmer.Swimmer):
 
 
 @swimmer.SUITE.add()
-def swim(
+def swim_in_viscous_spheres(
     n_links=6,
     desired_speed=_SWIM_SPEED,
     time_limit=swimmer._DEFAULT_TIME_LIMIT,
@@ -101,5 +106,5 @@ def swim(
     )
 
 
-def load_env():
-    return suite.load("swimmer", "swim", task_kwargs={"random": 1})
+def load_env(**kwargs):
+    return suite.load("swimmer", "swim_in_viscous_spheres", task_kwargs={"random": 1, **kwargs})

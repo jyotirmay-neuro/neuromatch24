@@ -91,7 +91,6 @@ def _make_model(n_bodies):
   
   filename = resources.GetResource(Path(__file__).parent / 'swimmer.xml')
   mjcf = etree.fromstring(filename)
-  print(mjcf.find("./option"))
   head_body = mjcf.find('./worldbody/body')
   actuator = etree.SubElement(mjcf, 'actuator')
   sensor = etree.SubElement(mjcf, 'sensor')
