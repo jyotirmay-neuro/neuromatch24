@@ -11,12 +11,11 @@ class Sensor(nn.Module):
         output_dim: int = 3,
         n_hidden: int = 1,
         feat_start_idx: int = 5,
-        feat_end_idx = -1,
         transform_features: Callable | None = None
     ) -> None:
         super().__init__()
         self.feat_start_idx = feat_start_idx
-        self.feat_end_idx = feat_end_idx
+        self.feat_end_idx = feat_start_idx + input_dim
         self.layers = nn.Sequential(
             *[
                 nn.Sequential(

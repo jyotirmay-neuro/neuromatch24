@@ -2,9 +2,9 @@ from tonic.torch import models, normalizers
 import torch
 import torch.nn as nn
 
-from sensor import Sensor
-from SwimmerActor import SwimmerActor
-
+from models.sensor import Sensor
+from models.SwimmerActor import SwimmerActor
+from models.SwimmerModule import SwimmerModule
 
 def ppo_swimmer_model(
     n_joints=5,
@@ -56,11 +56,17 @@ def ppo_controller_swimmer_model(
     action_noise=0.1,
     critic_sizes=(64, 64),
     critic_activation=nn.Tanh,
+    controller_args={},
     **swimmer_kwargs,
 ):
+    _controller_args: dict = {
+        "input_dim":18,
+        "hidden_dim": 128,
+        **controller_args,
+    }
     return models.ActorCritic(
         actor=SwimmerActor(
-            controller=Sensor(input_dim=19, hidden_dim=128),
+            controller=Sensor(**_controller_args),
             swimmer=SwimmerModule(
                 n_joints=n_joints,
                 **swimmer_kwargs,
