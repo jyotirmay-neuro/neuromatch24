@@ -6,10 +6,14 @@ from dm_control.rl import control
 
 
 class Swim(swimmer.Swimmer):
-    def __init__(self, arena_size=(1, 1)):
+    def __init__(self, arena_size=(1, 1), aversion=False):
         self.arena_size = arena_size
         self.food_zone_size = min(arena_size) / 10
         self.food_zone_pos = self._random_food_zone()
+        if aversion=True:
+            self.reward_coeff = 1
+        else:
+            self.reward_coeff = -1
         super().__init__()
 
     def _random_food_zone(self):
@@ -42,18 +46,20 @@ class Swim(swimmer.Swimmer):
         position = physics.named.data.geom_xpos['nose'][:2]
         smell_strength = self._smell_strength(position)
         vel = physics.body_velocities()
-        reward = smell_strength + 0.1 * vel
+        reward = smell_strength + 0.1 * vel * self.reward_coeff
         if np.linalg.norm(position - self.food_zone_pos) > self.food_zone_size:
-            reward -= 0.1 * np.exp(np.linalg.norm(position - self.food_zone_pos))
+            reward -= self.reward_coeff *  (0.1 * np.exp(np.linalg.norm(position - self.food_zone_pos)))
         return reward
 
 @swimmer.SUITE.add()
-def swim_to_food(
+def swim_food(
     n_links=6,
     time_limit=swimmer._DEFAULT_TIME_LIMIT,
-    random=None ):
+    random=None,
+    aversion=False,
+):
     """Returns the Swim task for a n-link swimmer."""
-    task = Swim(arena_size=(10, 10))
+    task = Swim(arena_size=(10, 10), aversion=aversion)
 
     model_string, assets = swimmer.get_model_and_assets(n_links)
     physics = swimmer.Physics.from_xml_string(model_string, assets=assets)
@@ -68,4 +74,4 @@ def swim_to_food(
 
 
 def load_env(**kwargs):
-    return suite.load("swimmer", "swim_to_food")
+    return suite.load("swimmer", "swim_food")
