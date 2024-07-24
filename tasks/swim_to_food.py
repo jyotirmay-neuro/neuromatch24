@@ -1,8 +1,6 @@
- tasks/swim_to_food.py
- import numpy as np
-import dm_control.mujoco as mj
+import numpy as np
 from dm_control import suite
-import dm_control.suite.swimmer_2 as swimmer
+import dm_control.suite.swimmer as swimmer
 from dm_control.rl import control
 from lxml import etree
 
