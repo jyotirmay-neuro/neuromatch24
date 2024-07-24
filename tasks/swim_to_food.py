@@ -26,10 +26,10 @@ class Swim(swimmer.Swimmer):
 
     def get_observation(self, physics):
         obs = {}
+        obs['joints'] = physics.joints()
         obs['position'] = physics.named.data.geom_xpos['nose'][:2]
         obs['food_zone'] = self.food_zone_pos
         obs['smell_strength'] = self._smell_strength(obs['position'])
-        obs['joints'] = physics.joints()
         obs['to_target'] = physics.nose_to_target()
         obs['body_velocities'] = physics.body_velocities()
         return obs
