@@ -10,7 +10,7 @@ class Swim(swimmer.Swimmer):
         self.arena_size = arena_size
         self.food_zone_size = min(arena_size) / 10
         self.food_zone_pos = self._random_food_zone()
-        if aversion=True:
+        if aversion==True:
             self.reward_coeff = 1
         else:
             self.reward_coeff = -1
