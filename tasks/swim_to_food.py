@@ -1,9 +1,30 @@
-import numpy as np
+ tasks/swim_to_food.py
+ import numpy as np
 import dm_control.mujoco as mj
 from dm_control import suite
 import dm_control.suite.swimmer_2 as swimmer
 from dm_control.rl import control
+from lxml import etree
 
+
+def update_xml_with_food_zone(xml_string: str):
+    tree = etree.fromstring(xml_string)
+    worldbody = tree.find('./worldbody')
+
+    food_zone = etree.Element("geom", name="food_zone", type="box", pos="0 0 0.05", size="0.05 0.05 0.05", material="target")
+
+    # Find the old element
+    old_element = worldbody.find(".//geom[@name='target']")
+    if old_element is not None:
+        # Remove the old element
+        worldbody.remove(old_element)
+    # Add the new element
+    worldbody.append(food_zone)
+
+    return etree.tostring(tree, pretty_print=True)
+
+
+       
 
 class Swim(swimmer.Swimmer):
     def __init__(self, arena_size=(1, 1)):
@@ -56,6 +77,7 @@ def swim_to_food(
     task = Swim(arena_size=(10, 10))
 
     model_string, assets = swimmer.get_model_and_assets(n_links)
+    model_string = update_xml_with_food_zone(model_string)
     physics = swimmer.Physics.from_xml_string(model_string, assets=assets)
     
     return control.Environment(
