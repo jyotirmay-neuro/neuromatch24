@@ -55,6 +55,10 @@ class ViscositySpheres:
 
     def __init__(self, spheres: list[VscSphereP]):
         self._spheres = spheres
+        self._pos_all = np.array([ s.pos for s in spheres ])
+        self._coeff_all = np.array([ s.coeff for s in spheres ])
+        self._size_all = np.array([ s.size for s in spheres ])
+
 
     def update_xml(self, xml_string: str):
         tree = etree.fromstring(xml_string)
@@ -84,19 +88,55 @@ class ViscositySpheres:
     def apply_forces(self, physics):
         body_names = physics.named.data.xpos.axes[0].names
 
+        forces = []
         for body_name in body_names:
             # interested in swimmer body parts only
             if body_name != "head" and not body_name.startswith("segment"):
                 continue
             body_pos = physics.named.data.xpos[body_name]
 
+            # Assuming you have the following arrays
+            # coeff_all: np.ndarray of shape (M,)
+            # size_all: np.ndarray of shape (M,)
+            # pos_all: np.ndarray of shape (M, 3)
+            # body_pos: np.ndarray of shape (3,)
 
-            for s in self._spheres:
-                d_body = np.sqrt(((np.array(s.pos) - body_pos)**2).sum())
-                if d_body < s.size:
-                    linear_v = physics.named.data.cvel[body_name][
-                        :3
-                    ]  # [:3] for linar vel/forces only
-                    viscous_force = -s.coeff*s.size/(d_body + 0.000001)  * linear_v
-                    physics.named.data.xfrc_applied[body_name][:3] += viscous_force
-                    # physics.named.data.xfrc_applied[body_name][:3] += 0.001
+            # Calculate the distance from the body to each sphere
+            d_body_all = np.linalg.norm(self._pos_all - body_pos, axis=1)
+
+            # Create a mask for spheres within the size range
+            mask = d_body_all < self._size_all
+            
+            total_viscous_force = np.zeros(3)
+            if np.any(mask):
+
+                # Filter the coefficients, sizes, and positions for spheres within range
+                coeff_filtered = self._coeff_all[mask]
+                size_filtered = self._size_all[mask]
+                d_body_filtered = d_body_all[mask]
+
+                # Compute the viscous forces
+                linear_v = physics.named.data.cvel[body_name][:3]  # [:3] for linear vel/forces only
+                linear_v = linear_v[np.newaxis, :]  # Reshape linear_v to (1, 3) for broadcasting
+                viscous_forces = -coeff_filtered[:, np.newaxis] * size_filtered[:, np.newaxis] / (d_body_filtered[:, np.newaxis] + 0.000001) * linear_v
+
+
+                # Sum the viscous forces
+                total_viscous_force = viscous_forces.sum(axis=0)
+                
+            # Apply the total viscous force
+            physics.named.data.xfrc_applied[body_name][:3] += total_viscous_force
+            
+            forces.append(total_viscous_force)
+            # for s in self._spheres:
+            #     d_body = np.sqrt(((np.array(s.pos) - body_pos)**2).sum())
+            #     if d_body < s.size:
+            #         linear_v = physics.named.data.cvel[body_name][
+            #             :3
+            #         ]  # [:3] for linar vel/forces only
+            #         viscous_force = -s.coeff*s.size/(d_body + 0.000001)  * linear_v
+            #         physics.named.data.xfrc_applied[body_name][:3] += viscous_force
+            #         # physics.named.data.xfrc_applied[body_name][:3] += 0.001
+            #         forces.append(viscous_force)
+        
+        return np.concatenate(forces)
