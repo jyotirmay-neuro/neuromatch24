@@ -214,8 +214,8 @@ class Swimmer(base.Task):
                              bounds=(0, target_size),
                              margin=5*target_size,
                              sigmoid='long_tail')
-    
-class Food_Swimmer(control.Task):
+
+class Swimmer(control.Task):
     def __init__(self, arena_size=(1, 1)):
         self.arena_size = arena_size
         self.food_zone_size = min(arena_size) / 10
